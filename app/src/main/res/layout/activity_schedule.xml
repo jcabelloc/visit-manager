@@ -6,4 +6,60 @@
     android:layout_height="match_parent"
     tools:context="com.tamu.jcabelloc.visitmanager.ScheduleActivity">
 
+    <Spinner
+        android:id="@+id/agentSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="15dp" />
+
+    <EditText
+        android:id="@+id/visitReasonEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/agentSpinner"
+        android:layout_marginTop="15dp"
+        android:ems="10"
+        android:hint="Visit Reason"
+        android:inputType="textPersonName" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/visitReasonEditText"
+        android:layout_marginTop="15dp"
+        android:orientation="horizontal"
+        android:id="@+id/linearLayout">
+
+        <TextView
+            android:id="@+id/addressTextView"
+            android:layout_width="340dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Address from Location" />
+
+        <ImageButton
+            android:id="@+id/locationButton"
+            android:layout_width="25dp"
+            android:layout_height="30dp"
+            android:layout_alignBottom="@+id/locationEditText"
+            android:layout_marginStart="10dp"
+            android:layout_toEndOf="@+id/locationEditText"
+            android:layout_weight="1"
+            android:onClick="pickUpLocation"
+            app:srcCompat="@android:drawable/ic_menu_mylocation" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/scheduleButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/linearLayout"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="13dp"
+        android:onClick="schedulelVisit"
+        android:text="Schedule" />
 </RelativeLayout>
