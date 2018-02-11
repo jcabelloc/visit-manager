@@ -9,6 +9,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,8 +18,11 @@ import android.widget.Toast;
 import com.google.android.gms.maps.model.LatLng;
 import com.parse.FindCallback;
 import com.parse.ParseException;
+import com.parse.ParseGeoPoint;
+import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,6 +33,40 @@ import java.util.Locale;
 public class ScheduleActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
     LatLng latLng;
+    Spinner agentSpinner;
+    TextView addressTextView;
+    EditText visitReasonEditText;
+    ArrayList<VisitTask> visitTasks;
+    CustomAdapter listViewAdapter;
+
+    public void scheduleVisit(View view) {
+        //    public VisitTask(String agent, String address, LatLng location, String reason, String status) {
+
+        final VisitTask visitTask = new VisitTask(agentSpinner.getSelectedItem().toString(), addressTextView.getText().toString(), latLng, visitReasonEditText.getText().toString(), "created");
+        ParseObject parseVisitTask = new ParseObject("VisitTask");
+        parseVisitTask.put("agent", visitTask.getAgent());
+        parseVisitTask.put("reason", visitTask.getReason());
+        parseVisitTask.put("address", visitTask.getAddress());
+        parseVisitTask.put("status", visitTask.getStatus());
+        ParseGeoPoint location = new ParseGeoPoint(latLng.latitude, latLng.longitude);
+        parseVisitTask.put("location", location);
+        parseVisitTask.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e == null) {
+                    visitTasks.add(visitTask);
+                    listViewAdapter.notifyDataSetChanged();
+                    Toast.makeText(ScheduleActivity.this, "Visit Scheduled OK", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(ScheduleActivity.this, "Something went wrong saving the visit task", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        addressTextView.setText("Location -> Address");
+        visitReasonEditText.setText("");
+
+    }
+
     public void pickUpLocation(View view) {
         Intent intent = new Intent(this, PickUpAddressMapsActivity.class);
         //latLng = new LatLng(51.881708, -0.418173);
@@ -42,8 +81,33 @@ public class ScheduleActivity extends AppCompatActivity implements AdapterView.O
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_schedule);
-        TextView addressTextView = (TextView)findViewById(R.id.addressTextView);
+        addressTextView = (TextView)findViewById(R.id.addressTextView);
+        visitReasonEditText = (EditText) findViewById(R.id.visitReasonEditText);
 
+        //
+        ListView visitTaskListView = findViewById(R.id.visitTaskListView);
+        visitTasks = new ArrayList<>();
+        listViewAdapter = new CustomAdapter(this, visitTasks);
+        visitTaskListView.setAdapter(listViewAdapter);
+        ParseQuery<ParseObject> visitTaskQuery = ParseQuery.getQuery("VisitTask");
+        visitTaskQuery.whereEqualTo("status", "created");
+        visitTaskQuery.findInBackground(new FindCallback<ParseObject>() {
+            @Override
+            public void done(List<ParseObject> objects, ParseException e) {
+                if (e == null) {
+                    for (ParseObject parseVisitTask : objects) {
+                        VisitTask visitTask = new VisitTask(parseVisitTask.getObjectId(), parseVisitTask.getString("agent"), parseVisitTask.getString("address"),
+                                new LatLng(parseVisitTask.getParseGeoPoint("location").getLatitude(), parseVisitTask.getParseGeoPoint("location").getLongitude()), parseVisitTask.getString("reason"));
+                        visitTasks.add(visitTask);
+                    }
+                    listViewAdapter.notifyDataSetChanged();
+                }
+            }
+        });
+        //ArrayList<VisitTask> visitTasks = new ArrayList<VisitTask>(Arrays.asList(new VisitTask("jose", "Jr. Pira 429", new LatLng(0,0), "First Visit")));
+
+
+        //
         Intent intent = getIntent();
         if (intent.getDoubleExtra("latitude", 0) != 0 && intent.getDoubleExtra("longitude", 0) != 0) {
             latLng = new LatLng(intent.getDoubleExtra("latitude", 0),intent.getDoubleExtra("longitude", 0));
@@ -71,10 +135,7 @@ public class ScheduleActivity extends AppCompatActivity implements AdapterView.O
                 }else {
                     address = "N/A";
                 }
-                Log.i("Address", address);
                 addressTextView.setText(address);
-
-                //I/Address: Address[addressLines=[0:"630 Dunstable Road",1:"Luton",2:"LU4 8SE",3:"UK"],feature=630,admin=null,sub-admin=null,locality=Luton,thoroughfare=Dunstable Road,postalCode=LU4 8SE,countryCode=GB,countryName=United Kingdom,hasLatitude=true,latitude=51.8925319,hasLongitude=true,longitude=-0.4612792,phone=null,url=null,extras=null]
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -82,11 +143,11 @@ public class ScheduleActivity extends AppCompatActivity implements AdapterView.O
 
         }
 
-        Spinner agentSpinner = (Spinner)findViewById(R.id.agentSpinner);
+        agentSpinner = (Spinner)findViewById(R.id.agentSpinner);
         final List<String> agents = new ArrayList<>();
-        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, agents);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        agentSpinner.setAdapter(adapter);
+        final ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, agents);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        agentSpinner.setAdapter(spinnerAdapter);
         agentSpinner.setOnItemSelectedListener(this);
         ParseUser currentUser = ParseUser.getCurrentUser();
         if (currentUser != null) {
@@ -99,7 +160,7 @@ public class ScheduleActivity extends AppCompatActivity implements AdapterView.O
                         for (ParseUser user: objects) {
                             agents.add(user.getUsername());
                         }
-                        adapter.notifyDataSetChanged();
+                        spinnerAdapter.notifyDataSetChanged();
 
                     }else {
                         Toast.makeText(getApplicationContext(), "Something went wrong", Toast.LENGTH_LONG).show();

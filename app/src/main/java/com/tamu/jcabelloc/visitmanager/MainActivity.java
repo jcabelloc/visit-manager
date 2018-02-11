@@ -36,36 +36,35 @@ public class MainActivity extends AppCompatActivity {
         final String inputUserRole = userRoleSwitch.isChecked()?"supervisor":"agent";
         String action = loginButton.getTag().toString();
         if (action.equals("login")){
-            final String[] userRole = {""};
             ParseQuery<ParseUser> query = ParseUser.getQuery();
             query.whereEqualTo("username", usernameEditText.getText().toString());
             query.findInBackground(new FindCallback<ParseUser>() {
                 @Override
                 public void done(List<ParseUser> objects, ParseException e) {
                     if (e == null && objects.size() == 1){
-                        userRole[0] = objects.get(0).getString("role");
+                        final String userRole = objects.get(0).getString("role");
+                        ParseUser.logInInBackground(usernameEditText.getText().toString(), passwordEditText.getText().toString(), new LogInCallback() {
+                            @Override
+                            public void done(ParseUser user, ParseException e) {
+                            if (e == null) {
+                                if (!userRole.equals(inputUserRole)){
+                                    Toast.makeText(MainActivity.this, "Invalid Role", Toast.LENGTH_LONG).show();
+                                } else if (inputUserRole.equals("supervisor")) {
+                                    Toast.makeText(MainActivity.this, "Successful Login", Toast.LENGTH_LONG).show();
+                                    Intent intent = new Intent(MainActivity.this, ScheduleActivity.class);
+                                    startActivity(intent);
+                                } else if (inputUserRole.equals("agent")) {
+                                    Toast.makeText(MainActivity.this, "Successful Login, You are an agent!", Toast.LENGTH_LONG).show();
+                                }
+                            }else {
+                                Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                            }
+                            }
+                        });
                     }
                 }
             });
-            ParseUser.logInInBackground(usernameEditText.getText().toString(), passwordEditText.getText().toString(), new LogInCallback() {
-                @Override
-                public void done(ParseUser user, ParseException e) {
-                    if (e == null) {
-                        if (!userRole[0].equals(inputUserRole)){
-                            Toast.makeText(MainActivity.this, "Invalid Role", Toast.LENGTH_LONG).show();
-                        } else if (inputUserRole.equals("supervisor")) {
-                            Toast.makeText(MainActivity.this, "Successful Login", Toast.LENGTH_LONG).show();
-                            Intent intent = new Intent(MainActivity.this, ScheduleActivity.class);
-                            startActivity(intent);
-                        } else if (inputUserRole.equals("agent")) {
-                            Toast.makeText(MainActivity.this, "Successful Login, You are an agent!", Toast.LENGTH_LONG).show();
-                        }
 
-                    }else {
-                        Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
-                    }
-                }
-            });
 
         }else if (action.equals("signup")) {
             ParseUser user = new ParseUser();

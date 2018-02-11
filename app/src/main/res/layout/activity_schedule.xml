@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_marginTop="15dp" />
+        android:layout_marginTop="10dp" />
 
     <EditText
         android:id="@+id/visitReasonEditText"
@@ -20,17 +20,18 @@
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/agentSpinner"
-        android:layout_marginTop="15dp"
+        android:layout_marginTop="10dp"
         android:ems="10"
         android:hint="Visit Reason"
-        android:inputType="textPersonName" />
+        android:inputType="textPersonName"
+        android:textSize="14sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/visitReasonEditText"
-        android:layout_marginTop="15dp"
+        android:layout_marginTop="10dp"
         android:orientation="horizontal"
         android:id="@+id/linearLayout">
 
@@ -39,7 +40,7 @@
             android:layout_width="340dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="Address from Location" />
+            android:text="Location -> Address" />
 
         <ImageButton
             android:id="@+id/locationButton"
@@ -59,7 +60,16 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/linearLayout"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="13dp"
-        android:onClick="schedulelVisit"
+        android:layout_marginTop="10dp"
+        android:onClick="scheduleVisit"
         android:text="Schedule" />
+
+    <ListView
+        android:id="@+id/visitTaskListView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/scheduleButton"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:layout_marginTop="10dp" />
 </RelativeLayout>
